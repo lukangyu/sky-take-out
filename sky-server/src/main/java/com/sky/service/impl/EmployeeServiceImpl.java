@@ -3,6 +3,7 @@ package com.sky.service.impl;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
+import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
@@ -44,7 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
+        //后期需要进行md5加密，然后再进行比对
         password = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!password.equals(employee.getPassword())) {
             //密码错误
@@ -77,9 +78,19 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
         employee.setCreateTime(LocalDateTime.now());
         employee.setUpdateTime(LocalDateTime.now());
-        //TODO 后续需要改为当前登录用户的id
-        employee.setCreateUser(10L);
-        employee.setUpdateUser(10L);
+        employee.setStatus(StatusConstant.ENABLE);
+        /*
+          BaseContext.getCurrentId() 能拿到当前登录员工的 ID，是因为：
+
+          1. 拦截器 JwtTokenAdminInterceptor 在请求开始时解析 JWT，取出 empId；
+          2. 使用 BaseContext.setCurrentId(empId) 把 empId 存入线程上下文（ThreadLocal）；
+          3. ThreadLocal 是线程私有的，每个线程有自己的独立存储空间；
+          4. 一次请求的所有处理（拦截器 → controller → service）都由同一个线程完成；
+          5. 所以在整个请求过程中，通过 BaseContext.getCurrentId() 取到的值始终是同一个；
+          6. 请求结束后，拦截器的 afterCompletion 方法会调用 removeCurrentId()，防止内存泄漏。
+         */
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
     }
