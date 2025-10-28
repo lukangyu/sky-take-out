@@ -6,6 +6,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.EmployEidtPasswordDTO;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
@@ -161,4 +162,26 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeMapper.update(employee);
 
     }
+
+    /**
+     * 修改密码
+     * @param employeePasswordDTO
+     */
+    @Override
+    public void editPassword(EmployEidtPasswordDTO employeePasswordDTO) {
+        Long empId = BaseContext.getCurrentId();
+        String oldPassword = employeePasswordDTO.getOldPassword();
+        String newPassword = employeePasswordDTO.getNewPassword();
+
+        Employee employee = employeeMapper.getById(empId);
+        if (!employee.getPassword().equals(DigestUtils.md5DigestAsHex(oldPassword.getBytes()))) {
+            // 旧密码输入错误
+            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+        }
+        employee.setPassword(DigestUtils.md5DigestAsHex(newPassword.getBytes()));
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employeeMapper.update(employee);
+    }
+
 }
