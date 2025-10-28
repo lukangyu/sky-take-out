@@ -84,8 +84,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //将employ中剩余的属性补全
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
         employee.setStatus(StatusConstant.ENABLE);
         /*
           BaseContext.getCurrentId() 能拿到当前登录员工的 ID，是因为：
@@ -97,8 +95,6 @@ public class EmployeeServiceImpl implements EmployeeService {
           5. 所以在整个请求过程中，通过 BaseContext.getCurrentId() 取到的值始终是同一个；
           6. 请求结束后，拦截器的 afterCompletion 方法会调用 removeCurrentId()，防止内存泄漏。
          */
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
     }
@@ -156,9 +152,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
 
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
-
         employeeMapper.update(employee);
 
     }
@@ -179,8 +172,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
         }
         employee.setPassword(DigestUtils.md5DigestAsHex(newPassword.getBytes()));
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.update(employee);
     }
 
